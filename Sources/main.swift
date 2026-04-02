@@ -35,6 +35,7 @@ class Renderer: NSObject, MTKViewDelegate {
 class XDRApp: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem!
     var overlayWindow: NSWindow?
+    var boostView: MTKView?
     var device: MTLDevice!
     var boostRenderer: Renderer?
     var isActive = false
@@ -210,9 +211,9 @@ class XDRApp: NSObject, NSApplicationDelegate {
         for item in boostItems {
             item.state = (item.tag == sender.tag) ? .on : .off
         }
-        if isActive {
-            deactivate()
-            activate()
+        if isActive, let view = boostView {
+            // Update in-place — no teardown, no flash
+            view.clearColor = MTLClearColor(red: boostLevel, green: boostLevel, blue: boostLevel, alpha: 1.0)
         }
     }
 
@@ -252,6 +253,7 @@ class XDRApp: NSObject, NSApplicationDelegate {
         window.contentView?.layer?.compositingFilter = "multiply"
         window.orderFrontRegardless()
         overlayWindow = window
+        self.boostView = boostView
 
         isActive = true
         statusItem.button?.title = "☀︎"
@@ -262,6 +264,7 @@ class XDRApp: NSObject, NSApplicationDelegate {
     func deactivate() {
         overlayWindow?.orderOut(nil)
         overlayWindow = nil
+        boostView = nil
         boostRenderer = nil
 
         isActive = false
