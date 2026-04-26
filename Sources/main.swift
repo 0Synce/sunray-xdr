@@ -168,6 +168,7 @@ final class XDRApp: NSObject, NSApplicationDelegate, ObservableObject {
     @Published var boostLevel: Double = 2.0
     @Published var maxEDR: CGFloat = 1.0
     @Published var activationPulse = 0
+    @Published var splitPreviewEnabled = false
     @Published private(set) var isPanelVisible = false
 
     private let panelSize = NSSize(width: 330, height: 344)
@@ -482,11 +483,9 @@ final class XDRApp: NSObject, NSApplicationDelegate, ObservableObject {
         }
 
         if let window = overlayWindow, let screen = NSScreen.main {
-            if window.frame != screen.frame {
-                window.setFrame(screen.frame, display: false)
-                if let view = boostView {
-                    view.frame = NSRect(origin: .zero, size: screen.frame.size)
-                }
+            let targetFrame = overlayFrame(for: screen)
+            if window.frame != targetFrame {
+                applyOverlayFrame(targetFrame)
                 fputs("Display changed — overlay resized\n", stderr)
             }
 
@@ -511,9 +510,11 @@ final class XDRApp: NSObject, NSApplicationDelegate, ObservableObject {
             self.updateEDRHeadroom()
 
             if let window = self.overlayWindow {
-                if let screen = NSScreen.main, window.frame != screen.frame {
-                    window.setFrame(screen.frame, display: false)
-                    self.boostView?.frame = NSRect(origin: .zero, size: screen.frame.size)
+                if let screen = NSScreen.main {
+                    let targetFrame = self.overlayFrame(for: screen)
+                    if window.frame != targetFrame {
+                        self.applyOverlayFrame(targetFrame)
+                    }
                 }
                 window.orderFrontRegardless()
             } else if self.isSupported {
@@ -553,6 +554,26 @@ final class XDRApp: NSObject, NSApplicationDelegate, ObservableObject {
 
     func setMaxBoost() {
         setBoostLevel(maxBoostLevel)
+    }
+
+    func toggleSplitPreview() {
+        splitPreviewEnabled.toggle()
+
+        if splitPreviewEnabled, !isActive {
+            shouldBeActive = true
+            activate()
+        } else if isActive, let screen = NSScreen.main {
+            applyOverlayFrame(overlayFrame(for: screen))
+        }
+
+        fputs("Split preview — \(splitPreviewEnabled ? "on" : "off")\n", stderr)
+        syncUI()
+    }
+
+    func checkForUpdates() {
+        if let url = URL(string: "https://github.com/SimonMaj/sunray-xdr/releases/latest") {
+            NSWorkspace.shared.open(url)
+        }
     }
 
     // MARK: - Start at login
@@ -644,7 +665,7 @@ final class XDRApp: NSObject, NSApplicationDelegate, ObservableObject {
         boostLevel = clampedBoost(boostLevel)
         persistBoostLevel()
 
-        let frame = screen.frame
+        let frame = overlayFrame(for: screen)
         let window = NSWindow(contentRect: frame, styleMask: .borderless, backing: .buffered, defer: false)
         window.level = .screenSaver
         window.backgroundColor = .clear
@@ -695,9 +716,22 @@ final class XDRApp: NSObject, NSApplicationDelegate, ObservableObject {
         boostView = nil
         boostRenderer = nil
         isActive = false
+        splitPreviewEnabled = false
 
         fputs("XDR OFF\n", stderr)
         syncUI()
+    }
+
+    private func overlayFrame(for screen: NSScreen) -> NSRect {
+        guard splitPreviewEnabled else { return screen.frame }
+        var frame = screen.frame
+        frame.size.width = max(1, floor(frame.width / 2))
+        return frame
+    }
+
+    private func applyOverlayFrame(_ frame: NSRect) {
+        overlayWindow?.setFrame(frame, display: false)
+        boostView?.frame = NSRect(origin: .zero, size: frame.size)
     }
 
     private func clearColorForCurrentBoost() -> MTLClearColor {
@@ -1034,9 +1068,33 @@ private struct BoostPanelView: View {
 
     private var settings: some View {
         VStack(spacing: 8) {
-            Toggle("Start with macOS", isOn: loginBinding)
-                .toggleStyle(.switch)
-                .font(.system(size: 12, weight: .medium))
+            HStack(spacing: 8) {
+                Text("Start with macOS")
+                    .font(.system(size: 12, weight: .medium))
+
+                Spacer()
+
+                Toggle("", isOn: loginBinding)
+                    .toggleStyle(.switch)
+                    .labelsHidden()
+
+                utilityIconButton(
+                    symbol: "rectangle.split.2x1",
+                    isActive: app.splitPreviewEnabled,
+                    help: "Split preview"
+                ) {
+                    app.toggleSplitPreview()
+                }
+                .disabled(!app.isSupported)
+
+                utilityIconButton(
+                    symbol: "arrow.clockwise",
+                    isActive: false,
+                    help: "Check for updates"
+                ) {
+                    app.checkForUpdates()
+                }
+            }
 
             Divider().opacity(0.34)
 
@@ -1076,6 +1134,31 @@ private struct BoostPanelView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
+    }
+
+    private func utilityIconButton(
+        symbol: String,
+        isActive: Bool,
+        help: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 10, weight: .semibold))
+                .frame(width: 22, height: 22)
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(isActive ? .yellow : .secondary)
+        .background(
+            Circle()
+                .fill(isActive ? Color.yellow.opacity(0.18) : Color.primary.opacity(0.05))
+        )
+        .overlay(
+            Circle()
+                .strokeBorder(Color.primary.opacity(isActive ? 0.16 : 0.08), lineWidth: 1)
+        )
+        .help(help)
     }
 
     private func presetButton(_ title: String, value: Double) -> some View {
