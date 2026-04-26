@@ -41,7 +41,7 @@ Sunray XDR creates an invisible Metal overlay using `multiply` compositing with 
 
 ### Easy Install
 
-Download the latest `.dmg` from [Releases](https://github.com/0Synce/sunray-xdr/releases), open it, and drag **Sunray XDR.app** to Applications.
+Download the latest `.dmg` from [Releases](https://github.com/SimonMaj/sunray-xdr/releases), open it, and drag **Sunray XDR.app** to Applications.
 
 If you prefer building from source, download the repository and double-click `Install.command`.
 
@@ -58,7 +58,7 @@ The packaged DMG will be created in `dist/`.
 ### Manual Install
 
 ```bash
-git clone https://github.com/0Synce/sunray-xdr.git
+git clone https://github.com/SimonMaj/sunray-xdr.git
 cd sunray-xdr
 ./install.sh
 ```
