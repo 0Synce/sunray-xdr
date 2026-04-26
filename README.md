@@ -1,6 +1,8 @@
 # Sunray XDR
 
-![Sunray XDR demo](Assets/sunray-xdr-demo.gif)
+<p align="center">
+  <img src="Assets/sunray-xdr-demo.gif" alt="Sunray XDR demo" width="365">
+</p>
 
 Sunray XDR is a polished macOS app fork of [levelsio/xdr-boost](https://github.com/levelsio/xdr-boost), adding a Liquid Glass menu bar UI, brightness slider, presets, launch-at-login, app icon, packaged builds, and visual polish for everyday users.
 
