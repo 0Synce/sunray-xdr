@@ -1,4 +1,4 @@
-# xdr-boost
+# XDR Boost
 
 Free and open-source XDR brightness booster for MacBook Pro. Like [Vivid](https://www.getvivid.app/), but free.
 
@@ -8,12 +8,14 @@ Unlocks the full brightness of your Liquid Retina XDR display beyond the standar
 
 - Boosts screen brightness beyond the standard 500 nit SDR limit using XDR hardware
 - No white tint or washed-out colors — uses multiply compositing to preserve colors perfectly
-- Menu bar icon with brightness presets (1.5x, 2.0x, 3.0x, 4.0x)
+- Polished menu bar control panel with a live brightness slider
+- Quick presets for Soft, 2x, and Max
+- Saves your preferred boost level between launches
 - Global keyboard shortcut (**Ctrl+Option+Cmd+V**) to toggle from anywhere
 - Survives sleep/wake, lid close/open, and lock/unlock — brightness auto-restores
 - Starts with XDR off — rebooting always gives you a normal screen
 - Emergency kill switch (`xdr-boost --kill`) if anything goes wrong
-- Single binary, no dependencies, ~250 lines of Swift
+- Single native Swift app, no dependencies
 - Launch agent for auto-start on login
 
 ## How it works
@@ -32,6 +34,15 @@ xdr-boost creates an invisible Metal overlay using `multiply` compositing with E
 ```bash
 git clone https://github.com/levelsio/xdr-boost.git
 cd xdr-boost
+make app
+open ".build/XDR Boost.app"
+```
+
+The runnable macOS app will be at `.build/XDR Boost.app`.
+
+### Command-line binary
+
+```bash
 make build
 ```
 
@@ -60,16 +71,20 @@ sudo make uninstall
 ## Usage
 
 ```bash
-# Run with menu bar icon (default 2x boost)
+# Run the macOS app
+open ".build/XDR Boost.app"
+
+# Or run the command-line binary with menu bar icon
 xdr-boost
 
 # Run with custom boost level
 xdr-boost 3.0
 ```
 
-Click the **☀** icon in your menu bar to:
+Click the **sun** icon in your menu bar to:
 - Toggle XDR brightness on/off
-- Choose brightness level (1.5x, 2.0x, 3.0x, 4.0x)
+- Fine-tune brightness with the slider
+- Choose quick presets
 - Quit
 
 ### Keyboard shortcut

@@ -1,13 +1,32 @@
 PREFIX ?= /usr/local
 BINARY = xdr-boost
 BUILD_DIR = .build
+APP_NAME = XDR Boost
+APP_BUNDLE = $(BUILD_DIR)/$(APP_NAME).app
+APP_EXECUTABLE = XDRBoost
 
-.PHONY: build install uninstall clean launch-agent remove-agent
+.PHONY: all build app open install uninstall clean launch-agent remove-agent
+
+all: app
 
 build:
 	@mkdir -p $(BUILD_DIR)
 	swiftc -O -o $(BUILD_DIR)/$(BINARY) Sources/main.swift \
-		-framework Cocoa -framework MetalKit -framework Metal
+		-framework Cocoa -framework SwiftUI -framework MetalKit -framework Metal
+
+app: build
+	@rm -rf "$(APP_BUNDLE)"
+	@mkdir -p "$(APP_BUNDLE)/Contents/MacOS"
+	@mkdir -p "$(APP_BUNDLE)/Contents/Resources"
+	cp Packaging/Info.plist "$(APP_BUNDLE)/Contents/Info.plist"
+	cp Packaging/AppIcon.icns "$(APP_BUNDLE)/Contents/Resources/AppIcon.icns"
+	cp "$(BUILD_DIR)/$(BINARY)" "$(APP_BUNDLE)/Contents/MacOS/$(APP_EXECUTABLE)"
+	chmod 755 "$(APP_BUNDLE)/Contents/MacOS/$(APP_EXECUTABLE)"
+	@codesign --force --deep --sign - "$(APP_BUNDLE)" >/dev/null
+	@echo "Built $(APP_BUNDLE)"
+
+open: app
+	open "$(APP_BUNDLE)"
 
 install: build
 	install -d $(PREFIX)/bin
