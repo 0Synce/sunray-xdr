@@ -942,17 +942,6 @@ private struct BoostPanelView: View {
             }
 
             Spacer()
-
-            Button {
-                app.quit()
-            } label: {
-                Image(systemName: "power")
-                    .font(.system(size: 12, weight: .semibold))
-                    .frame(width: 22, height: 22)
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(.secondary)
-            .help("Shut down Sunray XDR")
         }
     }
 
@@ -1059,6 +1048,26 @@ private struct BoostPanelView: View {
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(.red)
                     .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
+            HStack {
+                Spacer()
+                Button {
+                    app.quit()
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "power")
+                            .font(.system(size: 9, weight: .semibold))
+                        Text("Exit")
+                            .font(.system(size: 10, weight: .medium))
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.tertiary)
+                .help("Exit Sunray XDR")
             }
         }
     }
